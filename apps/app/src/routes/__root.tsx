@@ -5,6 +5,11 @@ import {
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
+import TanStackQueryProvider from "@/lib/root-provider";
+
+import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -24,19 +29,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				title: "Canopy",
 			},
 		],
-		links: [],
+		links: [
+			{
+				rel: "stylesheet",
+				href: appCss,
+			},
+		],
 	}),
 	shellComponent: RootDocument,
 });
 
 function RootDocument() {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<Outlet />
+				<NuqsAdapter>
+					<TanStackQueryProvider>
+						<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+							<Outlet />
+						</ThemeProvider>
+					</TanStackQueryProvider>
+				</NuqsAdapter>
 				<Scripts />
 			</body>
 		</html>

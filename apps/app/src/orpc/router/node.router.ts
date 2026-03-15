@@ -15,7 +15,7 @@ export const nodeRouter = os.router({
 		.input(
 			z.object({
 				content: z.string().optional(),
-				parentId: z.string().optional(),
+				parentId: z.string().nullable().optional(),
 				position: z.string(),
 				metadata: z
 					.object({
@@ -57,7 +57,7 @@ export const nodeRouter = os.router({
 			z.object({
 				id: z.string(),
 				content: z.string().optional(),
-				parentId: z.string().optional(),
+				parentId: z.string().nullable().optional(),
 				position: z.string().optional(),
 				metadata: z
 					.object({
@@ -69,16 +69,14 @@ export const nodeRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
-			const { id, ...updateData } = input;
-
 			const [result] = await db
 				.update(nodes)
-				.set(updateData)
-				.where(eq(nodes.id, id))
+				.set(input)
+				.where(eq(nodes.id, input.id))
 				.returning();
 
 			if (!result) {
-				throw new Error(`Node with id ${id} not found`);
+				throw new Error(`Node with id ${input.id} not found`);
 			}
 
 			return result;
