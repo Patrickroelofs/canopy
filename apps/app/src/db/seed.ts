@@ -63,7 +63,10 @@ function getMockContent(
 		return faker.helpers.arrayElement([
 			faker.hacker.phrase(),
 			faker.company.catchPhrase(),
-			faker.lorem.sentence(),
+			faker.lorem.sentence({
+				min: 8,
+				max: 260,
+			}),
 		]);
 	}
 

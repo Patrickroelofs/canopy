@@ -17,9 +17,11 @@ export const renderTree = (
 				<NodeRenderer node={node} />
 
 				<div
-					style={{
-						paddingLeft: children.length > 0 ? 20 : 0,
-					}}
+					className={
+						children.length > 0
+							? "ml-2 pl-4 border-l border-border *:relative *:before:content-[''] *:before:absolute *:before:-left-4 *:before:top-[0.9em] *:before:w-4 *:before:border-t *:before:border-border"
+							: ""
+					}
 				>
 					{children.length > 0 ? renderTree(tree, node.id, depth + 1) : null}
 				</div>
