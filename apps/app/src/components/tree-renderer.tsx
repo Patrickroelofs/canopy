@@ -1,3 +1,4 @@
+import { NodeRenderer } from "@/components/node-renderer";
 import type { Node } from "@/db/schemas/node-schema";
 import { parentKey } from "@/lib/build-tree-map";
 
@@ -13,7 +14,8 @@ export const renderTree = (
 
 		return (
 			<div key={node.id}>
-				<p>{node.content}</p>
+				<NodeRenderer node={node} />
+
 				<div
 					style={{
 						paddingLeft: children.length > 0 ? 20 : 0,
