@@ -22,7 +22,7 @@ export const nodes = pgTable(
 
 		metadata: jsonb("metadata")
 			.$type<{
-				type: "paragraph" | "task";
+				type?: "paragraph" | "task";
 				taskCompleted?: boolean;
 				expanded?: boolean;
 			}>()

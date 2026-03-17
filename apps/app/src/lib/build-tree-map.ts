@@ -1,4 +1,5 @@
 import type { Node } from "@/db/schemas/node-schema";
+import { compareNodesByPosition } from "@/lib/position";
 
 export function parentKey(parentId: string | null) {
 	return parentId ?? "__root__";
@@ -16,6 +17,10 @@ export function buildChildrenMap(nodes: Node[]) {
 		} else {
 			map.set(key, [node]);
 		}
+	}
+
+	for (const [key, siblings] of map) {
+		map.set(key, [...siblings].sort(compareNodesByPosition));
 	}
 
 	return map;

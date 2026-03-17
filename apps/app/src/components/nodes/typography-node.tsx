@@ -11,7 +11,10 @@ export const TypographyNode = ({ node }: TypographyNodeProps) => {
 				aria-hidden
 				className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/50 transition-colors group-hover:bg-foreground/60"
 			/>
-			<p className="min-w-0 flex-1 leading-6 text-foreground wrap-break-word">
+			<p
+				className="min-w-0 flex-1 leading-6 text-foreground wrap-break-word"
+				contentEditable
+			>
 				{node.content}
 			</p>
 		</div>

@@ -15,7 +15,10 @@ export const TaskNode = ({ node }: TaskNodeProps) => {
 
 			<div className="flex items-center gap-1">
 				<Checkbox checked={node.metadata?.taskCompleted || false} />
-				<p className="min-w-0 flex-1 leading-6 text-foreground wrap-break-word">
+				<p
+					className="min-w-0 flex-1 leading-6 text-foreground wrap-break-word"
+					contentEditable
+				>
 					{node.content}
 				</p>
 			</div>
