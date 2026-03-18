@@ -36,9 +36,12 @@ function App() {
 	return (
 		<div className="h-screen w-screen">
 			<h1>Canopy</h1>
-			{renderTree(dataTree, null, 0, {
-				onToggleExpanded,
-			})}
+
+			<div className="max-w-7xl">
+				{renderTree(dataTree, null, 0, {
+					onToggleExpanded,
+				})}
+			</div>
 		</div>
 	);
 }

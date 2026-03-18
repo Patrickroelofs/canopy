@@ -32,9 +32,12 @@ export function compareNodesByPosition<T extends OrderedNode>(
 	return left.id.localeCompare(right.id);
 }
 
-export function generatePositionBetween(before: string, after: string) {
-	const left = positionValue(before);
-	const right = positionValue(after);
+export function generatePositionBetween(
+	before: string | null,
+	after: string | null,
+) {
+	const left = positionValue(before ?? "");
+	const right = positionValue(after ?? "");
 
 	return generateKeyBetween(left, right);
 }
