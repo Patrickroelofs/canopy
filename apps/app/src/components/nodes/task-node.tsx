@@ -26,23 +26,6 @@ export const TaskNode = ({ node }: TaskNodeProps) => {
 		},
 	});
 
-	const updateContentMutation = useMutation({
-		mutationFn: ({ id, content }: { id: string; content: string }) =>
-			client.nodeRouter.update({ id, content }),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
-		},
-	});
-
-	const contentDebouncer = useDebouncer(
-		(content: string) => {
-			if (content !== node.content) {
-				updateContentMutation.mutate({ id: node.id, content });
-			}
-		},
-		{ wait: 500, onUnmount: (d) => d.flush() },
-	);
-
 	return (
 		<div className="group flex items-start gap-2 px-1 py-1 hover:bg-muted/40 rounded-lg">
 			<span
@@ -66,12 +49,6 @@ export const TaskNode = ({ node }: TaskNodeProps) => {
 						node.metadata?.taskCompleted &&
 							"line-through text-muted-foreground",
 					)}
-					contentEditable
-					suppressContentEditableWarning
-					onInput={(e) => {
-						contentDebouncer.maybeExecute(e.currentTarget.textContent ?? "");
-					}}
-					onBlur={() => contentDebouncer.flush()}
 				>
 					{node.content}
 				</p>
