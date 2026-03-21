@@ -15,20 +15,17 @@ export const nodes = pgTable(
 		content: text("content").notNull().default(""),
 
 		parentId: uuid("parent_id"),
-		position: text("position").notNull(),
 
 		createdAt: timestamp("created_at").defaultNow(),
 		lastModified: timestamp("updated_at").defaultNow(),
 
+		type: text("type").notNull().default("paragraph"),
 		metadata: jsonb("metadata")
 			.$type<{
-				type?: "paragraph" | "task";
 				taskCompleted?: boolean;
 				expanded?: boolean;
 			}>()
-			.default({
-				type: "paragraph",
-			}),
+			.default({}),
 	},
 	(table) => [
 		foreignKey({

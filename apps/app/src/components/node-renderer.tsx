@@ -7,12 +7,12 @@ interface NodeRendererProps {
 }
 
 export const NodeRenderer = ({ node }: NodeRendererProps) => {
-	switch (node.metadata?.type) {
+	switch (node.type) {
 		case "paragraph":
 			return <TypographyNode node={node} />;
 		case "task":
 			return <TaskNode node={node} />;
 		default:
-			throw new Error(`Unknown node type: ${node.metadata?.type}`);
+			throw new Error(`Unknown node type: ${node.type}`);
 	}
 };

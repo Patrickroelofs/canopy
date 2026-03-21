@@ -1,13 +1,11 @@
 import { resolve } from "node:path";
 import { faker } from "@faker-js/faker";
 import { config as loadEnv } from "dotenv";
-import { generatePositionBetween } from "@/lib/position";
 
 type NewNode = {
 	id: string;
 	content: string;
 	parentId: string | null;
-	position: string;
 	metadata: {
 		type: "paragraph" | "task";
 		taskCompleted?: boolean;
@@ -125,7 +123,6 @@ async function main() {
 	const items: NewNode[] = [];
 	const nodesByDepth: NodeRef[] = [];
 	const depthById = new Map<string, number>();
-	const lastSiblingPositionByParent = new Map<string, string>();
 
 	let previousNodeId: string | null = null;
 	let rootCount = 0;
@@ -157,17 +154,11 @@ async function main() {
 
 		const nodeId = crypto.randomUUID();
 		const metadata = getMetadata(index);
-		const siblingGroupKey = parentId ?? "__root__";
-		const previousSiblingPosition =
-			lastSiblingPositionByParent.get(siblingGroupKey) ?? null;
-		const position = generatePositionBetween(previousSiblingPosition, null);
-		lastSiblingPositionByParent.set(siblingGroupKey, position);
 
 		items.push({
 			id: nodeId,
 			content: getMockContent(index, depth, metadata.type),
 			parentId,
-			position,
 			metadata,
 		});
 
