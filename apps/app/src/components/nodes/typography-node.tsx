@@ -13,7 +13,7 @@ export const TypographyNode = ({ node }: TypographyNodeProps) => {
 				className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/50 transition-colors group-hover:bg-foreground/60"
 			/>
 
-			<EditableRegion value={node.content} />
+			<EditableRegion node={node} value={node.content} />
 		</div>
 	);
 };

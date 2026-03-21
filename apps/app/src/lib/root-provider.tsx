@@ -7,7 +7,7 @@ let context:
 	  }
 	| undefined;
 
-export function getContext() {
+export function getApplicationContext() {
 	if (context) {
 		return context;
 	}
@@ -35,7 +35,7 @@ export default function TanStackQueryProvider({
 }: {
 	children: ReactNode;
 }) {
-	const { queryClient } = getContext();
+	const { queryClient } = getApplicationContext();
 
 	return (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

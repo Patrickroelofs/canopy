@@ -19,9 +19,9 @@ export const nodeRouter = os.router({
 				position: z.string().optional(),
 				afterId: z.string().optional(),
 				beforeId: z.string().optional(),
+				type: z.enum(["paragraph"]).optional(),
 				metadata: z
 					.object({
-						type: z.enum(["paragraph", "task"]),
 						taskCompleted: z.boolean().optional(),
 						expanded: z.boolean().optional(),
 					})
@@ -35,6 +35,7 @@ export const nodeRouter = os.router({
 					content: input.content,
 					parentId: input.parentId,
 					metadata: input.metadata,
+					type: input.type,
 				})
 				.returning();
 

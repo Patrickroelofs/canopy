@@ -1,16 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { CreateNewNode } from "@/components/nodes/create-new-node";
 import { renderTree } from "@/components/tree-renderer";
 import type { Node } from "@/db/schemas/node-schema";
 import { buildChildrenMap } from "@/lib/build-tree-map";
-import { getContext } from "@/lib/root-provider";
+import { getApplicationContext } from "@/lib/root-provider";
 import { client } from "@/orpc/client";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
-	const { queryClient } = getContext();
+	const { queryClient } = getApplicationContext();
 
 	const { data } = useQuery({
 		queryKey: ["nodes", "all"],
@@ -39,6 +40,7 @@ function App() {
 				{renderTree(dataTree, null, 0, {
 					onToggleExpanded,
 				})}
+				<CreateNewNode />
 			</div>
 		</div>
 	);

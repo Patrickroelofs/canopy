@@ -1,12 +1,12 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { routeTree } from "@/routeTree.gen";
-import { getContext } from "./lib/root-provider";
+import { getApplicationContext } from "./lib/root-provider";
 
 export function getRouter() {
 	const router = createTanStackRouter({
 		routeTree,
 
-		context: getContext(),
+		context: getApplicationContext(),
 	});
 
 	return router;

@@ -19,7 +19,7 @@ export const nodes = pgTable(
 		createdAt: timestamp("created_at").defaultNow(),
 		lastModified: timestamp("updated_at").defaultNow(),
 
-		type: text("type").notNull().default("paragraph"),
+		type: text("type").notNull().default("paragraph").$type<"paragraph">(),
 		metadata: jsonb("metadata")
 			.$type<{
 				taskCompleted?: boolean;
