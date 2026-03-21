@@ -8,7 +8,6 @@ import {
 	ContextMenuContent,
 	ContextMenuGroup,
 	ContextMenuItem,
-	ContextMenuLabel,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 
@@ -38,7 +37,6 @@ export const NodeRenderer = ({ node }: NodeRendererProps) => {
 				></ContextMenuTrigger>
 				<ContextMenuContent align="end" className="w-48">
 					<ContextMenuGroup>
-						<ContextMenuLabel>Node Settings</ContextMenuLabel>
 						<ContextMenuItem
 							variant="destructive"
 							onClick={() => deleteNodeMutation.mutate(node.id)}
