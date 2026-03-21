@@ -34,7 +34,7 @@ export const NodeRenderer = ({ node, tree }: NodeRendererProps) => {
 
 			if (idx > 0) {
 				const prevSibling = siblings[idx - 1];
-				return client.nodeRouter.update({
+				return client.nodeActionsRouter.indentNode({
 					id: node.id,
 					parentId: prevSibling.id,
 				});
@@ -58,7 +58,7 @@ export const NodeRenderer = ({ node, tree }: NodeRendererProps) => {
 			}
 
 			if (parent) {
-				return client.nodeRouter.update({
+				return client.nodeActionsRouter.outdentNode({
 					id: node.id,
 					parentId: parent.parentId ?? null,
 				});

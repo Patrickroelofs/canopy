@@ -19,6 +19,7 @@ export const nodes = pgTable(
 		createdAt: timestamp("created_at").defaultNow(),
 		lastModified: timestamp("updated_at").defaultNow(),
 
+		position: text("position").notNull(),
 		type: text("type").notNull().default("paragraph").$type<"paragraph">(),
 		metadata: jsonb("metadata")
 			.$type<{

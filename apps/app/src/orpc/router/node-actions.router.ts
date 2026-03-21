@@ -25,6 +25,44 @@ export const nodeActionsRouter = os.router({
 			return item;
 		}),
 
+	indentNode: os
+		.input(
+			z.object({
+				id: z.string(),
+				parentId: z.string(),
+			}),
+		)
+		.handler(async ({ input }) => {
+			const [item] = await db
+				.update(nodes)
+				.set({
+					parentId: input.parentId,
+				})
+				.where(eq(nodes.id, input.id))
+				.returning();
+
+			return item;
+		}),
+
+	outdentNode: os
+		.input(
+			z.object({
+				id: z.string(),
+				parentId: z.string().nullable(),
+			}),
+		)
+		.handler(async ({ input }) => {
+			const [item] = await db
+				.update(nodes)
+				.set({
+					parentId: input.parentId,
+				})
+				.where(eq(nodes.id, input.id))
+				.returning();
+
+			return item;
+		}),
+
 	toggleTaskCompleted: os
 		.input(
 			z.object({

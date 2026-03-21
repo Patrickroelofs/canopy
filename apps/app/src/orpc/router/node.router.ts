@@ -1,5 +1,6 @@
 import { os } from "@orpc/server";
 import { eq } from "drizzle-orm";
+import { generateKeyBetween } from "fractional-indexing";
 import z from "zod";
 import { db } from "@/db";
 import { nodes } from "@/db/schemas/node-schema";
@@ -29,6 +30,10 @@ export const nodeRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
+			const allItems = await db.select().from(nodes);
+			const lastPosition = allItems[allItems.length - 1]?.position;
+			const newEndPosition = generateKeyBetween(lastPosition, undefined);
+
 			const [item] = await db
 				.insert(nodes)
 				.values({
@@ -36,6 +41,7 @@ export const nodeRouter = os.router({
 					parentId: input.parentId,
 					metadata: input.metadata,
 					type: input.type,
+					position: newEndPosition,
 				})
 				.returning();
 
