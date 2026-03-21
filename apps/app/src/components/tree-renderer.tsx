@@ -35,7 +35,7 @@ export const renderTree = (
 						</button>
 					)}
 
-					<NodeRenderer node={node} />
+					<NodeRenderer node={node} tree={tree} />
 				</div>
 
 				{node.metadata?.expanded && (
