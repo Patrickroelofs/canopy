@@ -7,8 +7,9 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { debounce } from "@tanstack/react-pacer";
-import type { EditorState } from "lexical";
+import type { EditorState, SerializedEditorState } from "lexical";
 import { useCallback, useMemo, useRef } from "react";
+import { EMPTY_STATE } from "@/actions/create-node-action";
 import { useUpdateNodeAction } from "@/actions/update-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
@@ -17,14 +18,24 @@ interface EditableRegionProps {
 	node: Node;
 }
 
-const EMPTY_STATE =
-	'{"root":{"children":[{"children":[],"direction":null,"format":"","indent":0,"type":"paragraph","version":1}],"direction":null,"format":"","indent":0,"type":"root","version":1}}';
+const ensureNonEmptyState = (
+	content: SerializedEditorState,
+): SerializedEditorState => {
+	if (!content.root || !Array.isArray(content.root.children)) {
+		return EMPTY_STATE;
+	}
+
+	return content;
+};
 
 export const EditableRegion = ({ node }: EditableRegionProps) => {
 	const { queryClient } = getApplicationContext();
-	const lastContentRef = useRef(
-		node.content ? JSON.stringify(node.content) : EMPTY_STATE,
+	const initialState = useMemo(
+		() => ensureNonEmptyState(node.content),
+		[node.content],
 	);
+	const initialStateString = JSON.stringify(initialState);
+	const lastContentRef = useRef<string>(initialStateString);
 
 	const { mutate } = useUpdateNodeAction({
 		invalidateNodes: () => {
@@ -35,7 +46,7 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 	const debouncedSave = useMemo(
 		() =>
 			debounce(
-				(content) => {
+				(content: SerializedEditorState) => {
 					mutate({ nodeId: node.id, content });
 				},
 				{ wait: 500 },
@@ -47,17 +58,18 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 		namespace: `editable-region-${node.id}`,
 		theme: {},
 		onError: (error) => console.error(error),
-		editorState: node.content ? JSON.stringify(node.content) : EMPTY_STATE,
+		editorState: initialStateString,
 	};
 
 	const handleChange = useCallback(
 		(editorState: EditorState) => {
 			editorState.read(() => {
-				const contentString = JSON.stringify(editorState.toJSON());
+				const content = editorState.toJSON();
+				const contentString = JSON.stringify(content);
 
 				if (contentString !== lastContentRef.current) {
 					lastContentRef.current = contentString;
-					debouncedSave(contentString);
+					debouncedSave(content);
 				}
 			});
 		},

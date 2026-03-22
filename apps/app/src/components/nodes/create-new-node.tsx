@@ -1,25 +1,18 @@
 import { PlusIcon } from "@phosphor-icons/react";
-import { useMutation } from "@tanstack/react-query";
+import { useCreateNodeAction } from "@/actions/create-node-action";
 import { getApplicationContext } from "@/lib/root-provider";
-import { client } from "@/orpc/client";
 import { Button } from "../ui/button";
 
 export const CreateNewNode = () => {
 	const { queryClient } = getApplicationContext();
 
-	const createNewNodeMutation = useMutation({
-		mutationFn: () =>
-			client.nodeRouter.create({
-				content: "",
-				type: "paragraph",
-			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
-		},
+	const { mutate } = useCreateNodeAction({
+		invalidateNodes: () =>
+			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] }),
 	});
 
 	const handleCreateNewNode = () => {
-		createNewNodeMutation.mutate();
+		mutate();
 	};
 
 	return (

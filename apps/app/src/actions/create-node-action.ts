@@ -1,13 +1,22 @@
 import { useMutation } from "@tanstack/react-query";
 import type { SerializedEditorState } from "lexical";
-import type { Node } from "@/db/schemas/node-schema";
 import { client } from "@/orpc/client";
 
-interface CreateNodeProps {
-	nodeId: string;
-	content: SerializedEditorState;
-	type: Node["type"];
-}
+export const EMPTY_STATE: SerializedEditorState = {
+	root: {
+		children: [
+			{
+				type: "paragraph",
+				version: 1,
+			},
+		],
+		direction: null,
+		format: "",
+		indent: 0,
+		type: "root",
+		version: 1,
+	},
+} as SerializedEditorState;
 
 export const useCreateNodeAction = ({
 	invalidateNodes,
@@ -15,7 +24,7 @@ export const useCreateNodeAction = ({
 	invalidateNodes: () => void;
 }) =>
 	useMutation({
-		mutationFn: ({ content, type }: CreateNodeProps) =>
-			client.nodeRouter.create({ content, type }),
+		mutationFn: () =>
+			client.nodeRouter.create({ content: EMPTY_STATE, type: "paragraph" }),
 		onSuccess: invalidateNodes,
 	});
