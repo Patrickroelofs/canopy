@@ -17,7 +17,7 @@ export const CreateNewNode = () => {
 
 	return (
 		<div className="group flex items-start gap-3 px-1 py-1">
-			<Button variant="ghost" size="icon" onClick={handleCreateNewNode}>
+			<Button variant="outline" size="icon" onClick={handleCreateNewNode}>
 				<PlusIcon className="h-3 w-3 text-muted-foreground" />
 			</Button>
 		</div>
