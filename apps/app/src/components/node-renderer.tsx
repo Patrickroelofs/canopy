@@ -35,11 +35,11 @@ export const NodeRenderer = ({ node, tree }: NodeRendererProps) => {
 	});
 
 	return (
-		<div className="group relative flex items-start gap-2">
+		<div className="group relative flex items-start gap-2 w-full">
 			<ContextMenu>
 				<ContextMenuTrigger
 					render={
-						<div className="flex-1">
+						<div className="flex-1 w-full">
 							<NodeSwitch node={node} />
 						</div>
 					}

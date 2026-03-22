@@ -78,7 +78,7 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 	);
 
 	return (
-		<div className="block w-94">
+		<div className="block w-full">
 			<LexicalComposer initialConfig={initialConfig}>
 				<RichTextPlugin
 					contentEditable={
