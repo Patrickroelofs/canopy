@@ -18,5 +18,28 @@ export function buildChildrenMap(nodes: Node[]) {
 		}
 	}
 
+	for (const siblings of map.values()) {
+		siblings.sort((a, b) => {
+			const aOrder = a.order;
+			const bOrder = b.order;
+
+			if (aOrder && bOrder && aOrder !== bOrder) {
+				if (aOrder < bOrder) return -1;
+				if (aOrder > bOrder) return 1;
+				return 0;
+			}
+
+			if (aOrder === bOrder) {
+				const aCreatedAt = a.createdAt?.getTime() ?? 0;
+				const bCreatedAt = b.createdAt?.getTime() ?? 0;
+				return aCreatedAt - bCreatedAt;
+			}
+
+			if (aOrder) return -1;
+			if (bOrder) return 1;
+			return 0;
+		});
+	}
+
 	return map;
 }

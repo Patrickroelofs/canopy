@@ -7,25 +7,15 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { debounce } from "@tanstack/react-pacer";
-import { useMutation } from "@tanstack/react-query";
 import type { EditorState } from "lexical";
 import { useCallback, useMemo, useRef } from "react";
+import { useUpdateNodeAction } from "@/actions/update-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
-import { client } from "@/orpc/client";
 
 interface EditableRegionProps {
 	node: Node;
 }
-
-interface SaveNodeProps {
-	nodeId: string;
-	content: string;
-}
-
-const saveNodeContent = async ({ nodeId, content }: SaveNodeProps) => {
-	await client.nodeRouter.update({ id: nodeId, content });
-};
 
 const EMPTY_STATE =
 	'{"root":{"children":[{"children":[],"direction":null,"format":"","indent":0,"type":"paragraph","version":1}],"direction":null,"format":"","indent":0,"type":"root","version":1}}';
@@ -36,9 +26,8 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 		node.content ? JSON.stringify(node.content) : EMPTY_STATE,
 	);
 
-	const { mutate } = useMutation({
-		mutationFn: saveNodeContent,
-		onSuccess: () => {
+	const { mutate } = useUpdateNodeAction({
+		invalidateNodes: () => {
 			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
 		},
 	});

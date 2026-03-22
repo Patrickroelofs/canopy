@@ -21,6 +21,8 @@ export const nodes = pgTable(
 		lastModified: timestamp("updated_at").defaultNow(),
 
 		type: text("type").notNull().default("paragraph").$type<"paragraph">(),
+		order: text().notNull(),
+
 		metadata: jsonb("metadata")
 			.$type<{
 				taskCompleted?: boolean;

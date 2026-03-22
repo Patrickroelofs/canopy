@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useDeleteNodeAction } from "@/actions/delete-node-action";
+import { useMoveNodeActions } from "@/actions/move-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
-import { client } from "@/orpc/client";
 import { NodeSwitch } from "./node-switch";
 import {
 	ContextMenu,
@@ -19,56 +19,19 @@ interface NodeRendererProps {
 export const NodeRenderer = ({ node, tree }: NodeRendererProps) => {
 	const { queryClient } = getApplicationContext();
 
-	const deleteNodeMutation = useMutation({
-		mutationFn: (id: string) => client.nodeRouter.delete({ id }),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
-		},
-	});
+	const invalidateNodes = () => {
+		queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
+	};
 
-	const indentNodeMutation = useMutation({
-		mutationFn: async (node: Node) => {
-			const siblings = tree.get(node.parentId ?? "__root__") || [];
-
-			const idx = siblings.findIndex((n) => n.id === node.id);
-
-			if (idx > 0) {
-				const prevSibling = siblings[idx - 1];
-				return client.nodeActionsRouter.indentNode({
-					id: node.id,
-					parentId: prevSibling.id,
-				});
-			}
-
-			return null;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
-		},
-	});
-
-	const outdentNodeMutation = useMutation({
-		mutationFn: async (node: Node) => {
-			if (!node.parentId) return null;
-			let parent: Node | undefined;
-
-			for (const siblings of tree.values()) {
-				parent = siblings.find((n) => n.id === node.parentId);
-				if (parent) break;
-			}
-
-			if (parent) {
-				return client.nodeActionsRouter.outdentNode({
-					id: node.id,
-					parentId: parent.parentId ?? null,
-				});
-			}
-
-			return null;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
-		},
+	const deleteNodeMutation = useDeleteNodeAction({ invalidateNodes });
+	const {
+		moveUpMutation,
+		moveDownMutation,
+		indentNodeMutation,
+		outdentNodeMutation,
+	} = useMoveNodeActions({
+		tree,
+		invalidateNodes,
 	});
 
 	return (
@@ -83,6 +46,12 @@ export const NodeRenderer = ({ node, tree }: NodeRendererProps) => {
 				></ContextMenuTrigger>
 				<ContextMenuContent align="end" className="w-48">
 					<ContextMenuGroup>
+						<ContextMenuItem onClick={() => moveUpMutation.mutate(node)}>
+							Move up
+						</ContextMenuItem>
+						<ContextMenuItem onClick={() => moveDownMutation.mutate(node)}>
+							Move down
+						</ContextMenuItem>
 						<ContextMenuItem onClick={() => indentNodeMutation.mutate(node)}>
 							Indent
 						</ContextMenuItem>

@@ -1,9 +1,29 @@
 import { os } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
+import { generateKeyBetween } from "fractional-indexing";
 import z from "zod";
 import { db } from "@/db";
 import { jsonbSet } from "@/db/helpers/jsonb-helpers";
 import { nodes } from "@/db/schemas/node-schema";
+
+async function getNextOrderKey(parentId: string | null) {
+	const siblings = await db
+		.select({ order: nodes.order })
+		.from(nodes)
+		.where(parentId ? eq(nodes.parentId, parentId) : isNull(nodes.parentId));
+
+	const lastOrderKey = siblings
+		.map((sibling) => sibling.order)
+		.filter((key): key is string => typeof key === "string")
+		.sort((a, b) => {
+			if (a < b) return -1;
+			if (a > b) return 1;
+			return 0;
+		})
+		.at(-1);
+
+	return generateKeyBetween(lastOrderKey ?? null, null);
+}
 
 export const nodeActionsRouter = os.router({
 	toggleExpanded: os
@@ -33,10 +53,13 @@ export const nodeActionsRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
+			const nextOrderKey = await getNextOrderKey(input.parentId);
+
 			await db
 				.update(nodes)
 				.set({
 					parentId: input.parentId,
+					order: nextOrderKey,
 				})
 				.where(eq(nodes.id, input.id))
 				.returning();
@@ -52,10 +75,32 @@ export const nodeActionsRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
+			const nextOrderKey = await getNextOrderKey(input.parentId);
+
 			await db
 				.update(nodes)
 				.set({
 					parentId: input.parentId,
+					order: nextOrderKey,
+				})
+				.where(eq(nodes.id, input.id))
+				.returning();
+
+			return { success: true };
+		}),
+
+	moveNode: os
+		.input(
+			z.object({
+				id: z.string(),
+				order: z.string(),
+			}),
+		)
+		.handler(async ({ input }) => {
+			await db
+				.update(nodes)
+				.set({
+					order: input.order,
 				})
 				.where(eq(nodes.id, input.id))
 				.returning();

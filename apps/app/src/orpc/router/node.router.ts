@@ -1,5 +1,7 @@
 import { os } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
+import { generateKeyBetween } from "fractional-indexing";
+import type { SerializedEditorState } from "lexical";
 import z from "zod";
 import { db } from "@/db";
 import { nodes } from "@/db/schemas/node-schema";
@@ -14,11 +16,12 @@ export const nodeRouter = os.router({
 	create: os
 		.input(
 			z.object({
-				content: z.json().optional(),
+				content: z.custom<SerializedEditorState>(),
 				parentId: z.string().nullable().optional(),
 				afterId: z.string().optional(),
 				beforeId: z.string().optional(),
 				type: z.enum(["paragraph"]).optional(),
+				order: z.string().optional(),
 				metadata: z
 					.object({
 						taskCompleted: z.boolean().optional(),
@@ -28,13 +31,39 @@ export const nodeRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
+			const siblings = await db
+				.select({ order: nodes.order })
+				.from(nodes)
+				.where(
+					input.parentId
+						? eq(nodes.parentId, input.parentId)
+						: isNull(nodes.parentId),
+				);
+
+			const lastOrderKey = siblings
+				.map((sibling) => sibling.order)
+				.filter((key): key is string => typeof key === "string")
+				.sort((a, b) => {
+					if (a < b) return -1;
+					if (a > b) return 1;
+					return 0;
+				})
+				.at(-1);
+
+			const nextOrderKey = input.order
+				? input.order
+				: generateKeyBetween(lastOrderKey ?? null, null);
+
 			const [item] = await db
 				.insert(nodes)
 				.values({
 					content: input.content,
 					parentId: input.parentId,
-					metadata: input.metadata,
+					metadata: {
+						...input.metadata,
+					},
 					type: input.type,
+					order: nextOrderKey,
 				})
 				.returning();
 
@@ -57,7 +86,7 @@ export const nodeRouter = os.router({
 		.input(
 			z.object({
 				id: z.string(),
-				content: z.string().optional(),
+				content: z.custom<SerializedEditorState>().optional(),
 				parentId: z.string().nullable().optional(),
 				metadata: z
 					.object({
