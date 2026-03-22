@@ -13,6 +13,7 @@ import { EMPTY_STATE } from "@/actions/create-node-action";
 import { useUpdateNodeAction } from "@/actions/update-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
+import { DisableDefaultFeaturesPlugin } from "./lexical-plugins/disable-default-features";
 
 interface EditableRegionProps {
 	node: Node;
@@ -83,11 +84,14 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 					contentEditable={
 						<ContentEditable
 							aria-placeholder={"Enter some text..."}
+							className="editable-region"
 							placeholder={<span className="w-full"></span>}
 						/>
 					}
 					ErrorBoundary={LexicalErrorBoundary}
 				/>
+
+				<DisableDefaultFeaturesPlugin />
 				<OnChangePlugin onChange={handleChange} />
 			</LexicalComposer>
 		</div>
