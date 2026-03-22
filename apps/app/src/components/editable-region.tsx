@@ -1,55 +1,94 @@
+import {
+	type InitialConfigType,
+	LexicalComposer,
+} from "@lexical/react/LexicalComposer";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { debounce } from "@tanstack/react-pacer";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import type { EditorState } from "lexical";
+import { useCallback, useMemo, useRef } from "react";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
 import { client } from "@/orpc/client";
 
 interface EditableRegionProps {
 	node: Node;
-	value: string;
 }
 
-export const EditableRegion = ({ node, value }: EditableRegionProps) => {
-	const ref = useRef<HTMLParagraphElement>(null);
-	const { queryClient } = getApplicationContext();
+interface SaveNodeProps {
+	nodeId: string;
+	content: string;
+}
 
-	const updateContentMutation = useMutation({
-		mutationFn: ({ id, content }: { id: string; content: string }) =>
-			client.nodeRouter.update({ id, content }),
+const saveNodeContent = async ({ nodeId, content }: SaveNodeProps) => {
+	await client.nodeRouter.update({ id: nodeId, content });
+};
+
+const EMPTY_STATE =
+	'{"root":{"children":[{"children":[],"direction":null,"format":"","indent":0,"type":"paragraph","version":1}],"direction":null,"format":"","indent":0,"type":"root","version":1}}';
+
+export const EditableRegion = ({ node }: EditableRegionProps) => {
+	const { queryClient } = getApplicationContext();
+	const lastContentRef = useRef(
+		node.content ? JSON.stringify(node.content) : EMPTY_STATE,
+	);
+
+	const { mutate } = useMutation({
+		mutationFn: saveNodeContent,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
 		},
 	});
 
-	const contentDebouncer = debounce(
-		(content: string) => {
-			if (content !== node.content) {
-				updateContentMutation.mutate({ id: node.id, content });
-			}
-		},
-		{ wait: 500 },
+	const debouncedSave = useMemo(
+		() =>
+			debounce(
+				(content) => {
+					mutate({ nodeId: node.id, content });
+				},
+				{ wait: 500 },
+			),
+		[mutate, node.id],
 	);
 
-	useEffect(() => {
-		if (ref.current && ref.current.innerText !== value) {
-			ref.current.innerText = value ?? "";
-		}
-	}, [value]);
-
-	const handleInput = (e: React.InputEvent<HTMLParagraphElement>) => {
-		const nextContent = e.currentTarget.innerText;
-
-		contentDebouncer(nextContent);
+	const initialConfig: InitialConfigType = {
+		namespace: `editable-region-${node.id}`,
+		theme: {},
+		onError: (error) => console.error(error),
+		editorState: node.content ? JSON.stringify(node.content) : EMPTY_STATE,
 	};
 
+	const handleChange = useCallback(
+		(editorState: EditorState) => {
+			editorState.read(() => {
+				const contentString = JSON.stringify(editorState.toJSON());
+
+				if (contentString !== lastContentRef.current) {
+					lastContentRef.current = contentString;
+					debouncedSave(contentString);
+				}
+			});
+		},
+		[debouncedSave],
+	);
+
 	return (
-		<p
-			ref={ref}
-			className="min-w-0 flex-1 leading-6 text-foreground wrap-break-word text-base focus:outline-2 focus:outline-offset-4 rounded-md"
-			contentEditable
-			suppressContentEditableWarning
-			onInput={handleInput}
-		/>
+		<div className="block w-94">
+			<LexicalComposer initialConfig={initialConfig}>
+				<RichTextPlugin
+					contentEditable={
+						<ContentEditable
+							aria-placeholder={"Enter some text..."}
+							placeholder={<span className="w-full"></span>}
+						/>
+					}
+					ErrorBoundary={LexicalErrorBoundary}
+				/>
+				<OnChangePlugin onChange={handleChange} />
+			</LexicalComposer>
+		</div>
 	);
 };

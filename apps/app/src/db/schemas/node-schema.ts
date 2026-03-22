@@ -7,19 +7,19 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
+import type { SerializedEditorState } from "lexical";
 
 export const nodes = pgTable(
 	"nodes",
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
-		content: text("content").notNull().default(""),
+		content: jsonb("content").$type<SerializedEditorState>().notNull(),
 
 		parentId: uuid("parent_id"),
 
 		createdAt: timestamp("created_at").defaultNow(),
 		lastModified: timestamp("updated_at").defaultNow(),
 
-		position: text("position").notNull(),
 		type: text("type").notNull().default("paragraph").$type<"paragraph">(),
 		metadata: jsonb("metadata")
 			.$type<{

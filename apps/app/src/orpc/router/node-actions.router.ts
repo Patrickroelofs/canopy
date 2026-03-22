@@ -14,7 +14,7 @@ export const nodeActionsRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
-			const [item] = await db
+			await db
 				.update(nodes)
 				.set({
 					metadata: jsonbSet(nodes.metadata, ["expanded"], input.expanded),
@@ -22,7 +22,7 @@ export const nodeActionsRouter = os.router({
 				.where(eq(nodes.id, input.id))
 				.returning();
 
-			return item;
+			return { success: true };
 		}),
 
 	indentNode: os
@@ -33,7 +33,7 @@ export const nodeActionsRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
-			const [item] = await db
+			await db
 				.update(nodes)
 				.set({
 					parentId: input.parentId,
@@ -41,7 +41,7 @@ export const nodeActionsRouter = os.router({
 				.where(eq(nodes.id, input.id))
 				.returning();
 
-			return item;
+			return { success: true };
 		}),
 
 	outdentNode: os
@@ -52,7 +52,7 @@ export const nodeActionsRouter = os.router({
 			}),
 		)
 		.handler(async ({ input }) => {
-			const [item] = await db
+			await db
 				.update(nodes)
 				.set({
 					parentId: input.parentId,
@@ -60,29 +60,6 @@ export const nodeActionsRouter = os.router({
 				.where(eq(nodes.id, input.id))
 				.returning();
 
-			return item;
-		}),
-
-	toggleTaskCompleted: os
-		.input(
-			z.object({
-				id: z.string(),
-				taskCompleted: z.boolean(),
-			}),
-		)
-		.handler(async ({ input }) => {
-			const [item] = await db
-				.update(nodes)
-				.set({
-					metadata: jsonbSet(
-						nodes.metadata,
-						["taskCompleted"],
-						input.taskCompleted,
-					),
-				})
-				.where(eq(nodes.id, input.id))
-				.returning();
-
-			return item;
+			return { success: true };
 		}),
 });
