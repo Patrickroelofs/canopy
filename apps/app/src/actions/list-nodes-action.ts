@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/orpc/client";
 
+export const LIST_NODES_QUERY_KEY = ["nodes", "all"] as const;
+
 export const useListNodesAction = () => {
 	return useQuery({
-		queryKey: ["nodes", "all"],
+		queryKey: LIST_NODES_QUERY_KEY,
 		queryFn: () => client.nodeRouter.list(),
 	});
 };

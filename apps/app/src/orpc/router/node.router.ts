@@ -88,9 +88,9 @@ export const nodeRouter = os.router({
 				id: z.string(),
 				content: z.custom<SerializedEditorState>().optional(),
 				parentId: z.string().nullable().optional(),
+				type: z.enum(["paragraph", "task"]).optional(),
 				metadata: z
 					.object({
-						type: z.enum(["paragraph", "task"]),
 						taskCompleted: z.boolean().optional(),
 						expanded: z.boolean().optional(),
 					})

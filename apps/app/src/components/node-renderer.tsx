@@ -1,4 +1,5 @@
 import { CaretRightIcon } from "@phosphor-icons/react";
+import { useConvertNodeAction } from "@/actions/convert-node-action";
 import { useDeleteNodeAction } from "@/actions/delete-node-action";
 import { useExpandNodeAction } from "@/actions/expand-node-actions";
 import { useMoveNodeActions } from "@/actions/move-node-action";
@@ -34,6 +35,9 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 
 	const { mutate: toggleExpandedMutation } = useExpandNodeAction();
 	const { mutate: deleteNodeMutation } = useDeleteNodeAction({
+		invalidateNodes,
+	});
+	const { mutate: convertNodeMutation } = useConvertNodeAction({
 		invalidateNodes,
 	});
 
@@ -84,8 +88,23 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 				<ContextMenuSub>
 					<ContextMenuSubTrigger>Convert Node into</ContextMenuSubTrigger>
 					<ContextMenuSubContent className="w-48">
-						<ContextMenuItem>Paragraph</ContextMenuItem>
-						<ContextMenuItem>Task</ContextMenuItem>
+						<ContextMenuItem
+							onClick={() =>
+								convertNodeMutation({
+									nodeId: node.id,
+									type: "paragraph",
+								})
+							}
+						>
+							Paragraph
+						</ContextMenuItem>
+						<ContextMenuItem
+							onClick={() =>
+								convertNodeMutation({ nodeId: node.id, type: "task" })
+							}
+						>
+							Task
+						</ContextMenuItem>
 					</ContextMenuSubContent>
 				</ContextMenuSub>
 				<ContextMenuSeparator />

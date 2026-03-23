@@ -107,4 +107,45 @@ export const nodeActionsRouter = os.router({
 
 			return { success: true };
 		}),
+
+	toggleTaskCompleted: os
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.handler(async ({ input }) => {
+			const [node] = await db
+				.select()
+				.from(nodes)
+				.where(eq(nodes.id, input.id));
+
+			if (!node) {
+				throw new Error(`Node with id ${input.id} not found`);
+			}
+
+			if (node.type !== "task") {
+				throw new Error(`Node with id ${input.id} is not a task node`);
+			}
+
+			const currentCompleted = node.metadata?.taskCompleted ?? false;
+
+			const [result] = await db
+				.update(nodes)
+				.set({
+					metadata: jsonbSet(
+						nodes.metadata,
+						["taskCompleted"],
+						!currentCompleted,
+					),
+				})
+				.where(eq(nodes.id, input.id))
+				.returning();
+
+			if (!result) {
+				throw new Error(`Node with id ${input.id} not found`);
+			}
+
+			return result;
+		}),
 });
