@@ -27,7 +27,10 @@ export const TaskNode = ({ node }: TaskNodeProps) => {
 				className="mr-2"
 			/>
 			<div
-				className={cn(isCompleted ? "line-through text-muted-foreground" : "")}
+				className={cn(
+					"w-full",
+					isCompleted ? "line-through text-muted-foreground" : "",
+				)}
 			>
 				<EditableRegion node={node} />
 			</div>
