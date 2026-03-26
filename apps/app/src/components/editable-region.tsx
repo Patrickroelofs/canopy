@@ -94,6 +94,15 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 				}
 
 				previousEditableElement.focus();
+
+				const range = document.createRange();
+				range.selectNodeContents(previousEditableElement);
+				range.collapse(false);
+				const selection = window.getSelection();
+				if (selection) {
+					selection.removeAllRanges();
+					selection.addRange(range);
+				}
 			},
 		});
 	}, [deleteNodeMutate, node.id]);
