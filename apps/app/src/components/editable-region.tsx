@@ -14,6 +14,7 @@ import { useUpdateNodeAction } from "@/actions/update-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
 import { DisableDefaultFeaturesPlugin } from "./lexical-plugins/disable-default-features";
+import { DisableEnterKeyPlugin } from "./lexical-plugins/disable-enter-key";
 
 interface EditableRegionProps {
 	node: Node;
@@ -92,6 +93,7 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 				/>
 
 				<DisableDefaultFeaturesPlugin />
+				<DisableEnterKeyPlugin />
 				<OnChangePlugin onChange={handleChange} />
 			</LexicalComposer>
 		</div>

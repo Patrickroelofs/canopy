@@ -9,11 +9,7 @@ export function DisableDefaultFeaturesPlugin() {
 		return editor.registerCommand(
 			FORMAT_TEXT_COMMAND,
 			(type) => {
-				if (type === "bold" || type === "italic") {
-					return false;
-				}
-
-				return true;
+				return !(type === "bold" || type === "italic");
 			},
 			1,
 		);
