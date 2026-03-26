@@ -1,6 +1,7 @@
 import { useToggleTaskNodeAction } from "@/actions/toggle-task-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
+import { cn } from "@/lib/utils.ts";
 import { EditableRegion } from "../editable-region";
 import { Checkbox } from "../ui/checkbox";
 
@@ -25,7 +26,11 @@ export const TaskNode = ({ node }: TaskNodeProps) => {
 				onClick={() => mutate({ nodeId: node.id })}
 				className="mr-2"
 			/>
-			<EditableRegion node={node} />
+			<div
+				className={cn(isCompleted ? "line-through text-muted-foreground" : "")}
+			>
+				<EditableRegion node={node} />
+			</div>
 		</div>
 	);
 };
