@@ -8,7 +8,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { debounce } from "@tanstack/react-pacer";
 import type { EditorState, SerializedEditorState } from "lexical";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, memo } from "react";
 import { EMPTY_STATE, useCreateNodeAction } from "@/actions/create-node-action";
 import { useDeleteNodeAction } from "@/actions/delete-node-action";
 import { useUpdateNodeAction } from "@/actions/update-node-action";
@@ -32,7 +32,7 @@ const ensureNonEmptyState = (
 	return content;
 };
 
-export const EditableRegion = ({ node }: EditableRegionProps) => {
+export const EditableRegion = memo(function EditableRegion({ node }: EditableRegionProps) {
 	const { queryClient } = getApplicationContext();
 	const initialState = useMemo(
 		() => ensureNonEmptyState(node.content),
@@ -163,4 +163,4 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 			</LexicalComposer>
 		</div>
 	);
-};
+});

@@ -15,7 +15,7 @@ export const renderTree = (
 		return (
 			<div key={node.id} className="relative">
 				<div className="flex items-center">
-					<NodeRenderer node={node} tree={tree} childNodes={children} />
+					<NodeRenderer node={node} childNodes={children} />
 				</div>
 
 				{node.metadata?.expanded && (

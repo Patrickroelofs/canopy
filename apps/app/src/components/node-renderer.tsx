@@ -1,8 +1,8 @@
 import { CaretRightIcon } from "@phosphor-icons/react";
+import { memo } from "react";
 import { useConvertNodeAction } from "@/actions/convert-node-action";
 import { useDeleteNodeAction } from "@/actions/delete-node-action";
 import { useExpandNodeAction } from "@/actions/expand-node-actions";
-import { useMoveNodeActions } from "@/actions/move-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
 import { cn } from "@/lib/utils";
@@ -21,12 +21,11 @@ import {
 } from "./ui/context-menu";
 
 interface NodeRendererProps {
-	tree: Map<string, Node[]>;
 	childNodes: Node[];
 	node: Node;
 }
 
-export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
+export const NodeRenderer = memo(function NodeRenderer({ node, childNodes }: NodeRendererProps) {
 	const { queryClient } = getApplicationContext();
 
 	const invalidateNodes = () => {
@@ -41,16 +40,6 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 		invalidateNodes,
 	});
 
-	const {
-		moveUpMutation,
-		moveDownMutation,
-		indentNodeMutation,
-		outdentNodeMutation,
-	} = useMoveNodeActions({
-		tree,
-		invalidateNodes,
-	});
-
 	const onToggleExpanded = (node: Node) => {
 		const currentExpanded = node.metadata?.expanded ?? false;
 
@@ -59,12 +48,7 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 
 	return (
 		<ContextMenu>
-			<ContextMenuTrigger
-				className={cn(
-					"flex gap-2 w-full items-center",
-					childNodes.length === 0 && "pl-8",
-				)}
-			>
+			<ContextMenuTrigger className={cn("flex gap-2 w-full items-center")}>
 				{childNodes.length > 0 && (
 					<Button
 						onClick={() => onToggleExpanded(node)}
@@ -109,18 +93,6 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 				</ContextMenuSub>
 				<ContextMenuSeparator />
 				<ContextMenuGroup>
-					<ContextMenuItem onClick={() => moveUpMutation.mutate(node)}>
-						Move up
-					</ContextMenuItem>
-					<ContextMenuItem onClick={() => moveDownMutation.mutate(node)}>
-						Move down
-					</ContextMenuItem>
-					<ContextMenuItem onClick={() => indentNodeMutation.mutate(node)}>
-						Indent
-					</ContextMenuItem>
-					<ContextMenuItem onClick={() => outdentNodeMutation.mutate(node)}>
-						Outdent
-					</ContextMenuItem>
 					<ContextMenuItem
 						variant="destructive"
 						onClick={() => deleteNodeMutation(node.id)}
@@ -131,4 +103,4 @@ export const NodeRenderer = ({ node, tree, childNodes }: NodeRendererProps) => {
 			</ContextMenuContent>
 		</ContextMenu>
 	);
-};
+});

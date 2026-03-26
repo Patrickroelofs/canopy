@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useListNodesAction } from "@/actions/list-nodes-action";
 import { CreateNewNode } from "@/components/nodes/create-new-node";
-import { renderTree } from "@/components/tree-renderer";
+import { TreeContainer } from "@/components/tree-container";
 import { TreeSkeleton } from "@/components/tree-skeleton";
 import { buildChildrenMap } from "@/lib/build-tree-map";
 
@@ -26,7 +26,7 @@ function App() {
 	return (
 		<div className="py-16">
 			<div className="max-w-7xl mx-auto">
-				{renderTree(dataTree, null, 0)}
+				<TreeContainer tree={dataTree} />
 				<CreateNewNode />
 			</div>
 		</div>
