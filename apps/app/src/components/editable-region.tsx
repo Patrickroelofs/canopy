@@ -8,13 +8,15 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { debounce } from "@tanstack/react-pacer";
 import type { EditorState, SerializedEditorState } from "lexical";
-import { useCallback, useMemo, useRef } from "react";
-import { EMPTY_STATE } from "@/actions/create-node-action";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { EMPTY_STATE, useCreateNodeAction } from "@/actions/create-node-action";
+import { useDeleteNodeAction } from "@/actions/delete-node-action";
 import { useUpdateNodeAction } from "@/actions/update-node-action";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
+import { ActionOnBackspaceKey } from "./lexical-plugins/action-on-backspace-key";
+import { ActionOnEnterKey } from "./lexical-plugins/action-on-enter-key.ts";
 import { DisableDefaultFeaturesPlugin } from "./lexical-plugins/disable-default-features";
-import { DisableEnterKeyPlugin } from "./lexical-plugins/disable-enter-key";
 
 interface EditableRegionProps {
 	node: Node;
@@ -38,12 +40,63 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 	);
 	const initialStateString = JSON.stringify(initialState);
 	const lastContentRef = useRef<string>(initialStateString);
+	const contentEditableRef = useRef<HTMLDivElement>(null);
 
 	const { mutate } = useUpdateNodeAction({
 		invalidateNodes: () => {
 			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
 		},
 	});
+
+	const { mutate: deleteNodeMutate } = useDeleteNodeAction({
+		invalidateNodes: () => {
+			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
+		},
+	});
+
+	const { mutate: createNodeMutate } = useCreateNodeAction({
+		invalidateNodes: () => {
+			queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
+		},
+	});
+
+	useEffect(() => {
+		if (contentEditableRef.current) {
+			contentEditableRef.current.focus();
+		}
+	}, []);
+
+	const handleEnter = useCallback(() => {
+		const targetParentId = node.parentId ?? null;
+
+		createNodeMutate({
+			parentId: targetParentId,
+		});
+	}, [node.parentId, createNodeMutate]);
+
+	const handleBackspace = useCallback(() => {
+		const currentElement = contentEditableRef.current;
+		const editableElements = Array.from(
+			document.querySelectorAll<HTMLDivElement>(
+				".editable-region[data-node-id]",
+			),
+		);
+		const currentIndex = currentElement
+			? editableElements.indexOf(currentElement)
+			: -1;
+		const previousEditableElement =
+			currentIndex > 0 ? editableElements[currentIndex - 1] : null;
+
+		deleteNodeMutate(node.id, {
+			onSuccess: () => {
+				if (!previousEditableElement) {
+					return;
+				}
+
+				previousEditableElement.focus();
+			},
+		});
+	}, [deleteNodeMutate, node.id]);
 
 	const debouncedSave = useMemo(
 		() =>
@@ -84,6 +137,8 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 				<RichTextPlugin
 					contentEditable={
 						<ContentEditable
+							ref={contentEditableRef}
+							data-node-id={node.id}
 							aria-placeholder={"Enter some text..."}
 							className="editable-region"
 							placeholder={<span className="w-full"></span>}
@@ -93,7 +148,8 @@ export const EditableRegion = ({ node }: EditableRegionProps) => {
 				/>
 
 				<DisableDefaultFeaturesPlugin />
-				<DisableEnterKeyPlugin />
+				<ActionOnEnterKey onEnter={handleEnter} />
+				<ActionOnBackspaceKey onBackspace={handleBackspace} />
 				<OnChangePlugin onChange={handleChange} />
 			</LexicalComposer>
 		</div>
