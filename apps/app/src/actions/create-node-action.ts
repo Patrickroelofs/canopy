@@ -24,12 +24,9 @@ export const useCreateNodeAction = ({
 	invalidateNodes: () => void;
 }) =>
 	useMutation({
-		mutationFn: (options?: { parentId?: string | null; order?: string }) =>
+		mutationFn: () =>
 			client.nodeRouter.create({
 				content: EMPTY_STATE,
-				type: "paragraph",
-				parentId: options?.parentId,
-				order: options?.order,
 			}),
 		onSuccess: invalidateNodes,
 	});

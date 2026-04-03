@@ -1,33 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
 import { useListNodesAction } from "@/actions/list-nodes-action";
+import { Authenticate } from "@/components/authenticate";
 import { CreateNewNode } from "@/components/nodes/create-new-node";
-import { TreeContainer } from "@/components/tree-container";
+import { renderTree } from "@/components/tree-renderer";
 import { TreeSkeleton } from "@/components/tree-skeleton";
-import { buildChildrenMap } from "@/lib/build-tree-map";
+import { authClient } from "@/integrations/better-auth/auth-client";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
-	const { data, isLoading } = useListNodesAction();
-
-	const dataTree = useMemo(() => buildChildrenMap(data ?? []), [data]);
-
-	if (isLoading) {
-		return (
-			<div className="py-16">
-				<div className="max-w-7xl mx-auto">
-					<TreeSkeleton />
-				</div>
-			</div>
-		);
-	}
+	const { data: session } = authClient.useSession();
+	const {
+		data: tree,
+		isLoading,
+		isEnabled,
+	} = useListNodesAction({
+		enabled: !!session,
+	});
 
 	return (
-		<div className="py-16">
-			<div className="max-w-7xl mx-auto">
-				<TreeContainer tree={dataTree} />
-				<CreateNewNode />
+		<div className="px-4 py-8 sm:px-6 lg:px-8">
+			<div className="mx-auto max-w-7xl">
+				<div className="mb-10 flex justify-end">
+					<Authenticate />
+				</div>
+				{isLoading || !isEnabled ? (
+					<TreeSkeleton />
+				) : (
+					<>
+						{renderTree(tree)}
+						<CreateNewNode />
+					</>
+				)}
 			</div>
 		</div>
 	);

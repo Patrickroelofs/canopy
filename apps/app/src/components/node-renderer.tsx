@@ -1,97 +1,42 @@
-import { CaretRightIcon } from "@phosphor-icons/react";
 import { memo } from "react";
-import { useConvertNodeAction } from "@/actions/convert-node-action";
 import { useDeleteNodeAction } from "@/actions/delete-node-action";
-import { useExpandNodeAction } from "@/actions/expand-node-actions";
 import type { Node } from "@/db/schemas/node-schema";
 import { getApplicationContext } from "@/lib/root-provider";
 import { cn } from "@/lib/utils";
 import { NodeSwitch } from "./node-switch";
-import { Button } from "./ui/button";
 import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuGroup,
 	ContextMenuItem,
-	ContextMenuSeparator,
-	ContextMenuSub,
-	ContextMenuSubContent,
-	ContextMenuSubTrigger,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 
 interface NodeRendererProps {
-	childNodes: Node[];
 	node: Node;
 }
 
-export const NodeRenderer = memo(function NodeRenderer({ node, childNodes }: NodeRendererProps) {
+export const NodeRenderer = memo(function NodeRenderer({
+	node,
+}: NodeRendererProps) {
 	const { queryClient } = getApplicationContext();
 
 	const invalidateNodes = () => {
 		queryClient.invalidateQueries({ queryKey: ["nodes", "all"] });
 	};
 
-	const { mutate: toggleExpandedMutation } = useExpandNodeAction();
 	const { mutate: deleteNodeMutation } = useDeleteNodeAction({
 		invalidateNodes,
 	});
-	const { mutate: convertNodeMutation } = useConvertNodeAction({
-		invalidateNodes,
-	});
-
-	const onToggleExpanded = (node: Node) => {
-		const currentExpanded = node.metadata?.expanded ?? false;
-
-		toggleExpandedMutation({ id: node.id, expanded: !currentExpanded });
-	};
 
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger className={cn("flex gap-2 w-full items-center")}>
-				{childNodes.length > 0 && (
-					<Button
-						onClick={() => onToggleExpanded(node)}
-						type="button"
-						variant="outline"
-						className={`
-									shrink-0 w-6 h-6 flex
-										${node.metadata?.expanded ? "rotate-90" : ""}
-								`}
-						tabIndex={-1}
-					>
-						<CaretRightIcon className="w-3 h-3 text-muted-foreground transition-transform" />
-					</Button>
-				)}
-
 				<div className="flex-1 w-full">
 					<NodeSwitch node={node} />
 				</div>
 			</ContextMenuTrigger>
 			<ContextMenuContent align="end" className="w-48">
-				<ContextMenuSub>
-					<ContextMenuSubTrigger>Convert Node into</ContextMenuSubTrigger>
-					<ContextMenuSubContent className="w-48">
-						<ContextMenuItem
-							onClick={() =>
-								convertNodeMutation({
-									nodeId: node.id,
-									type: "paragraph",
-								})
-							}
-						>
-							Paragraph
-						</ContextMenuItem>
-						<ContextMenuItem
-							onClick={() =>
-								convertNodeMutation({ nodeId: node.id, type: "task" })
-							}
-						>
-							Task
-						</ContextMenuItem>
-					</ContextMenuSubContent>
-				</ContextMenuSub>
-				<ContextMenuSeparator />
 				<ContextMenuGroup>
 					<ContextMenuItem
 						variant="destructive"

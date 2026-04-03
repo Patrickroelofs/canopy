@@ -8,6 +8,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import type { SerializedEditorState } from "lexical";
+import { user } from "./auth-schema";
 
 export const nodes = pgTable(
 	"nodes",
@@ -16,22 +17,12 @@ export const nodes = pgTable(
 		content: jsonb("content").$type<SerializedEditorState>().notNull(),
 
 		parentId: uuid("parent_id"),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
 
 		createdAt: timestamp("created_at").defaultNow(),
 		lastModified: timestamp("updated_at").defaultNow(),
-
-		type: text("type")
-			.notNull()
-			.default("paragraph")
-			.$type<"paragraph" | "task">(),
-		order: text().notNull(),
-
-		metadata: jsonb("metadata")
-			.$type<{
-				taskCompleted?: boolean;
-				expanded?: boolean;
-			}>()
-			.default({}),
 	},
 	(table) => [
 		foreignKey({
@@ -51,5 +42,9 @@ export const nodesRelations = relations(nodes, ({ one, many }) => ({
 	}),
 	children: many(nodes, {
 		relationName: "NodeHierarchy",
+	}),
+	user: one(user, {
+		fields: [nodes.userId],
+		references: [user.id],
 	}),
 }));

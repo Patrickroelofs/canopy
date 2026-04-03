@@ -1,117 +1,37 @@
-import { os } from "@orpc/server";
-import { eq, isNull } from "drizzle-orm";
-import { generateKeyBetween } from "fractional-indexing";
-import type { SerializedEditorState } from "lexical";
+import { eq } from "drizzle-orm";
+import type { SerializedEditorState, SerializedLexicalNode } from "lexical";
 import z from "zod";
 import { db } from "@/db";
 import { nodes } from "@/db/schemas/node-schema";
+import { authProcedure } from "../procedures/auth-procedure";
 
-export const nodeRouter = os.router({
-	list: os.handler(async () => {
+export const nodeRouter = authProcedure.router({
+	list: authProcedure.handler(async () => {
 		const items = await db.select().from(nodes);
 
 		return items;
 	}),
 
-	create: os
+	create: authProcedure
 		.input(
 			z.object({
-				content: z.custom<SerializedEditorState>(),
-				parentId: z.string().nullable().optional(),
-				afterId: z.string().optional(),
-				beforeId: z.string().optional(),
+				content: z.custom<SerializedEditorState<SerializedLexicalNode>>(),
 				type: z.enum(["paragraph"]).optional(),
-				order: z.string().optional(),
-				metadata: z
-					.object({
-						taskCompleted: z.boolean().optional(),
-						expanded: z.boolean().optional(),
-					})
-					.optional(),
 			}),
 		)
-		.handler(async ({ input }) => {
-			const siblings = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(
-					input.parentId
-						? eq(nodes.parentId, input.parentId)
-						: isNull(nodes.parentId),
-				);
-
-			const lastOrderKey = siblings
-				.map((sibling) => sibling.order)
-				.filter((key): key is string => typeof key === "string")
-				.sort((a, b) => {
-					if (a < b) return -1;
-					if (a > b) return 1;
-					return 0;
-				})
-				.at(-1);
-
-			const nextOrderKey = input.order
-				? input.order
-				: generateKeyBetween(lastOrderKey ?? null, null);
-
+		.handler(async ({ input, context }) => {
 			const [item] = await db
 				.insert(nodes)
 				.values({
+					userId: context.user.id,
 					content: input.content,
-					parentId: input.parentId,
-					metadata: {
-						...input.metadata,
-					},
-					type: input.type,
-					order: nextOrderKey,
 				})
 				.returning();
 
 			return item;
 		}),
 
-	read: os
-		.input(
-			z.object({
-				id: z.string(),
-			}),
-		)
-		.handler(async ({ input }) => {
-			const item = await db.select().from(nodes).where(eq(nodes.id, input.id));
-
-			return item;
-		}),
-
-	update: os
-		.input(
-			z.object({
-				id: z.string(),
-				content: z.custom<SerializedEditorState>().optional(),
-				parentId: z.string().nullable().optional(),
-				type: z.enum(["paragraph", "task"]).optional(),
-				metadata: z
-					.object({
-						taskCompleted: z.boolean().optional(),
-						expanded: z.boolean().optional(),
-					})
-					.optional(),
-			}),
-		)
-		.handler(async ({ input }) => {
-			const [result] = await db
-				.update(nodes)
-				.set(input)
-				.where(eq(nodes.id, input.id))
-				.returning();
-
-			if (!result) {
-				throw new Error(`Node with id ${input.id} not found`);
-			}
-
-			return result;
-		}),
-
-	delete: os
+	delete: authProcedure
 		.input(
 			z.object({
 				id: z.string(),
